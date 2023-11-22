@@ -1,0 +1,17 @@
+{
+  "canisters": {
+    "pet_registry": {
+      "candid": "src/pet_registry/pet_registry.did",
+      "package": "pet_registry",
+      "type": "rust"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
