@@ -1,4 +1,4 @@
-type AddPetPayload = record {
+type CreatePetPayload = record {
   owner_payload : OwnerPayload;
   pet_payload : PetPayload;
 };
@@ -9,6 +9,11 @@ type OwnerData = record {
   phone_number : text;
 };
 type OwnerPayload = record { name : text; address : text; phone_number : text };
+type OwnerUpdatePayload = record {
+  name : opt text;
+  address : opt text;
+  phone_number : opt text;
+};
 type PetPayload = record {
   sex : text;
   image_url : text;
@@ -28,12 +33,19 @@ type PetRecord = record {
   owner_details : OwnerData;
 };
 type Result = variant { Ok : PetRecord; Err : text };
+type UpdatePetPayload = record {
+  sex : opt text;
+  image_url : opt text;
+  name : opt text;
+  breed : opt text;
+  date_of_birth : opt text;
+};
 service : {
-  add_pet_record : (AddPetPayload) -> (opt PetRecord);
+  add_pet_record : (CreatePetPayload) -> (opt PetRecord);
   claim_pet : (nat64, OwnerPayload) -> (Result);
   delete_pet_record : (nat64) -> (Result);
   get_pet_record : (nat64) -> (Result) query;
   transfer_pet : (nat64, principal) -> (Result);
-  update_owner_record : (nat64, OwnerPayload) -> (Result);
-  update_pet_record : (nat64, PetPayload) -> (Result);
+  update_owner_record : (nat64, OwnerUpdatePayload) -> (Result);
+  update_pet_record : (nat64, UpdatePetPayload) -> (Result);
 }

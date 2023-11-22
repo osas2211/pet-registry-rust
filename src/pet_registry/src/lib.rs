@@ -85,6 +85,15 @@ struct PetPayload {
 }
 
 #[derive(candid::CandidType, Serialize, Deserialize, Default)]
+struct UpdatePetPayload {
+    name: Option<String>,
+    breed: Option<String>,
+    sex: Option<String>,
+    date_of_birth: Option<String>,
+    image_url: Option<String>,
+}
+
+#[derive(candid::CandidType, Serialize, Deserialize, Default)]
 struct OwnerPayload {
     name: String,
     address: String,
@@ -92,9 +101,22 @@ struct OwnerPayload {
 }
 
 #[derive(candid::CandidType, Serialize, Deserialize, Default)]
-struct AddPetPayload {
+struct OwnerUpdatePayload {
+    name: Option<String>,
+    address: Option<String>,
+    phone_number: Option<String>,
+}
+
+#[derive(candid::CandidType, Serialize, Deserialize, Default)]
+struct CreatePetPayload {
     pet_payload: PetPayload,
     owner_payload: OwnerPayload,
+}
+
+#[derive(candid::CandidType, Serialize, Deserialize, Default)]
+struct PetUpdatePayload {
+    pet_payload: UpdatePetPayload,
+    owner_payload: OwnerUpdatePayload,
 }
 
 #[ic_cdk::query]
@@ -106,7 +128,7 @@ fn get_pet_record(id: u64) -> Result<PetRecord, String> {
 }
 
 #[ic_cdk::update]
-fn add_pet_record(payload: AddPetPayload) -> Option<PetRecord> {
+fn add_pet_record(payload: CreatePetPayload) -> Option<PetRecord> {
     let id = ID_COUNTER
         .with(|counter| {
             let current_value = *counter.borrow().get();
@@ -138,17 +160,30 @@ fn add_pet_record(payload: AddPetPayload) -> Option<PetRecord> {
 }
 
 #[ic_cdk::update]
-fn update_pet_record(id: u64, payload: PetPayload) -> Result<PetRecord, String> {
+fn update_pet_record(id: u64, payload: UpdatePetPayload) -> Result<PetRecord, String> {
     match STORAGE.with(|service| service.borrow().get(&id)) {
         Some(mut record) => {
             // check if caller is owner
             if record.owner_details.id != ic_cdk::caller() {
                 return Err(format!("Only pet owner can edit record"));
             }
-            record.breed = payload.breed;
-            record.date_of_birth = payload.date_of_birth;
-            record.sex = payload.sex;
-            record.image_url = payload.image_url;
+            match payload.breed {
+                Some(breed) => record.breed = breed,
+                None => (),
+            }
+            match payload.date_of_birth {
+                Some(date_of_birth) => record.date_of_birth = date_of_birth,
+                None => (),
+            }
+            match payload.sex {
+                Some(sex) => record.sex = sex,
+                None => (),
+            }
+            match payload.image_url {
+                Some(image_url) => record.image_url = image_url,
+                None => (),
+            }
+
             record.updated_at = Some(time());
             do_insert(&record);
             Ok(record)
@@ -161,7 +196,7 @@ fn update_pet_record(id: u64, payload: PetPayload) -> Result<PetRecord, String> 
 }
 
 #[ic_cdk::update]
-fn update_owner_record(id: u64, payload: OwnerPayload) -> Result<PetRecord, String> {
+fn update_owner_record(id: u64, payload: OwnerUpdatePayload) -> Result<PetRecord, String> {
     match STORAGE.with(|service| service.borrow().get(&id)) {
         Some(mut record) => {
             // check if caller is owner
@@ -169,9 +204,19 @@ fn update_owner_record(id: u64, payload: OwnerPayload) -> Result<PetRecord, Stri
                 return Err(format!("Only pet owner can edit record"));
             }
 
-            record.owner_details.name = payload.name;
-            record.owner_details.address = payload.address;
-            record.owner_details.phone_number = payload.phone_number;
+            match payload.name {
+                Some(name) => record.owner_details.name = name,
+                None => (),
+            }
+            match payload.address {
+                Some(address) => record.owner_details.address = address,
+                None => (),
+            }
+            match payload.phone_number {
+                Some(phone_number) => record.owner_details.phone_number = phone_number,
+                None => (),
+            }
+
             record.updated_at = Some(time());
             do_insert(&record);
             Ok(record)
