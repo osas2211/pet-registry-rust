@@ -1,7 +1,9 @@
+type Account = record { new_user_instance : opt principal };
 type AddPetPayload = record {
   owner_payload : OwnerPayload;
   pet_payload : PetPayload;
 };
+type ID = record { pet_id : nat64 };
 type OwnerData = record {
   id : principal;
   name : text;
@@ -27,13 +29,18 @@ type PetRecord = record {
   date_of_birth : text;
   owner_details : OwnerData;
 };
-type Result = variant { Ok : PetRecord; Err : text };
+type Result = variant { Ok : opt PetRecord; Err : text };
+type Result_1 = variant { Ok : PetRecord; Err : text };
 service : {
-  add_pet_record : (AddPetPayload) -> (opt PetRecord);
-  claim_pet : (nat64, OwnerPayload) -> (Result);
-  delete_pet_record : (nat64) -> (Result);
-  get_pet_record : (nat64) -> (Result) query;
-  transfer_pet : (nat64, principal) -> (Result);
-  update_owner_record : (nat64, OwnerPayload) -> (Result);
-  update_pet_record : (nat64, PetPayload) -> (Result);
+  add_pet_record : (AddPetPayload, Account) -> (Result);
+  claim_pet : (ID, OwnerPayload, Account) -> (Result_1);
+  delete_pet_record : (ID, Account) -> (Result_1);
+  get_pet_record : (ID) -> (Result_1) query;
+  get_your_principal : () -> (principal) query;
+  revoke_transfer : (ID, Account) -> (Result_1);
+  transfer_pet : (ID, principal, Account) -> (Result_1);
+  update_owner_record : (ID, OwnerPayload, Account) -> (Result_1);
+  update_pet_record : (ID, PetPayload, Account) -> (Result_1);
+  view_pending_pets : (principal) -> (vec nat64) query;
+  view_pets_list : (principal) -> (vec nat64) query;
 }
